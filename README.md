@@ -1,4 +1,22 @@
-# DV360 Proxy
+# DV360 Proxy for Google Compute Cloud
+
+Table of Contents
+=================
+
+   * [DV360 Proxy for Google Compute Cloud](#dv360-proxy-for-google-compute-cloud)
+   * [API Reference](#api-reference)
+   * [Configuration](#configuration)
+   * [Deployment](#deployment)
+      * [Step 1 - init new application](#step-1---init-new-application)
+      * [Step 2 - enable required services](#step-2---enable-required-services)
+      * [Step 3 - link the project to a billing account](#step-3---link-the-project-to-a-billing-account)
+      * [Step 4 - deploy function](#step-4---deploy-function)
+      * [Step 5 - allow AudienceProject to call the function](#step-5---allow-audienceproject-to-call-the-function)
+      * [Step 6 - give project access to DV360 partner/advertiser](#step-6---give-project-access-to-dv360-partneradvertiser)
+      * [Step 7 - test if everything works](#step-7---test-if-everything-works)
+      * [Updates](#updates)
+      * [API Limits](#api-limits)
+
 
 This solution acts as a proxy to access DV360 reports without giving direct access to DV360 API.
 It solves three tasks:
@@ -8,28 +26,12 @@ It solves three tasks:
 
 Except of this is acts as a proxy, with no modification of requests and responses.
 
-Table of Contents
-=================
-
-   * [DV360 Proxy](#dv360-proxy)
-   * [Table of Contents](#table-of-contents)
-   * [API Reference](#api-reference)
-   * [Configuration](#configuration)
-      * [Access to DV360 API](#access-to-dv360-api)
-      * [Allowed Partners, Advertisers and blacklisted metrics](#allowed-partners-advertisers-and-blacklisted-metrics)
-   * [Deploymnet](#deploymnet)
-      * [Serverless Application Model](#serverless-application-model)
-      * [Terraform](#terraform)
-      * [Testing](#testing)
-      * [Updates](#updates)
-      * [API Limits](#api-limits)
-
 
 # API Reference
 
-Solution exposes Lambda function, that needs to be invoked directly using `lambda:InvokeFunction` API. There is built-in possibility to allow external AWS account to call the Lambda function.
+Solution exposes Cloud function, that needs to be invoked directly using secure HTTP call. There is built-in possibility to allow only certain Google Account to call the Cloud function.
 
-Lambda receives request, validates is against allowed Advertisers and Metrics and invokes corresponding DV360 API. The proxy uses [v1.1 DBM API](https://developers.google.com/bid-manager/v1.1) and exposes query-related methods.
+The Function receives request, validates is against allowed Advertisers and Metrics and invokes corresponding DV360 API. The proxy uses [v1.1 DBM API](https://developers.google.com/bid-manager/v1.1) and exposes query-related methods.
 
 Request object structure is the following:
 
@@ -100,77 +102,7 @@ Example:
 
 # Configuration
 
-
-
-
-## Access to DV360 API
-
-DV360 uses Service Account model for accessing DV360 API. The flow is:
-1. Create new Google Cloud Application that uses DisplayVideo and DBM APIs
-1. Create Service Account and download JSON file with credentials
-1. Invite Service Account to DV360 and assign correct permissions
-1. Create `dv360proxy.credentials` parameter in Parameter Store with type `SecureString` and use downloaded JSON file content as value
-
-_You can use existing Google Cloud Application, however it is recommended to not mix workloads and create dedicated application_
-
-In order to create new application [using the setup tool](https://console.developers.google.com/start/api?id=displayvideo.googleapis.com,doubleclickbidmanager&credential=client_key).
-
- Choose to create new application, accept Google Terms and Conditions and continue to the next Screen.
-
-![](docs/create_app_step1.png)![](docs/create_app_step2.png)
-
-You may want to rename the project. Also you will be able to do it later.
-
-Now you need to go to Credentials screen. 
-
-![](docs/create_app_step3.png)
-
-Click on "service account" link
-
-![](docs/create_app_step4.png)
-
-Choose to create new Service account
-
-![](docs/create_app_step5.png)
-
-Give it a name, like "DV360 API Proxy"
-
-![](docs/create_app_step6.png)
-
-Once, service account is created, you can skip next two optional steps and navigate to "Service accounts" list and choose to "Create key"
-
-![](docs/create_app_step8.png)
-
-Choose JSON as key-type
-
-![](docs/create_app_step9.png)
-
-Make sure, file is downloaded. You must store this file securely and protect against its leakage.
-
-![](docs/create_app_step10.png)
-
-Now you need to create the SSM Parameter. Recommended name is `dv360proxy.credentials`, however you can enter you any if you have organization policies regarding naming. You can do in [AWS Console / SSM / Create Parameter](https://console.aws.amazon.com/systems-manager/parameters/create)  page. **Doublecheck the region, so it is created in the correct one**
-
-![](docs/create_app_step11.png)
-
-ernatively, you can rename downloaded file to `credentials.json` and use AWS CLI to upload credentials
-
-```bash
-aws ssm put-parameter --name "dv360proxy.credentials"  --value file://credentials.json --type "SecureString" --overwrite --region=us-east-1
-```
-
-Now, you can delete file with credentials.
-
-Finally, you need to invite service-account email to DV360 and give **Read only** permissions.
-
-
-![](docs/create_app_step12.png)![](docs/create_app_step13.png)
-
-
-## Allowed Partners, Advertisers and blacklisted metrics
-
-The second piece of the configuration is non-secure JSON document that describes what partners and advertisers can be queried and what metrics can not be accessed.
-
+The Function needs to be configured to allow only whitelisted partner and advertisers to be queried and blacklisted fields. Such configuration is done using JSON format that has format below
 
 ```json
 {
@@ -216,36 +148,80 @@ It can be human-readed as following:
 > * Metrics validated against blacklist using `indeOf()`
 > One query may request multiple partners, advertisers. If any of the checks got failed - entire request will be refused.
 
-In order to help with JSON file creation, you can find `configurator.html` in the repo that provides UI for file generation.
+In order to help with JSON file creation, you can find `configurator.html` in the repo that provides UI for file generation. You need to make configuration and download `env.yaml` file and put this into `dv360proxy` folder.
 
-![](docs/configure_step1.png)
+![Create a new project](docs/configure_step1.png)
 
-Now you need to create the SSM Parameter. Recommended name is `dv360proxy.config`, however you can enter you any if you have organization policies regarding naming. You can do in [AWS Console / SSM / Create Parameter](https://console.aws.amazon.com/systems-manager/parameters/create)  page. **Doublecheck the region, so it is created in the correct one**
+This configuration needs to be passed to the Function using `DV360_PROXY_CONFIG` env variable passed through `env.yaml` file.
 
-![](docs/configure_step2.png)
+# Deployment
 
-ernativelym you can do it using AWS CLI. Save config as `config.json`. You can use "Donwload" button to save it from the UI.
+Entire deployment happens from CLI, so you need to make sure [gcloud SDK](https://cloud.google.com/sdk/docs/install) is insatalled.
 
+Then you need to set `dv360proxy` as your working directory and all commands from it.
 
-```bash
-aws ssm put-parameter --name "dv360proxy.config"  --value file://config.json --type "String" --overwrite --region=us-east-1
-```
+## Step 1 - init new application
 
-# Deploymnet
-
-```
+You need to create new Google Cloud Application by running
+```sh
 gcloud init
-gcloud services enable displayvideo.googleapis.com doubleclickbidmanager.googleapis.com
-gcloud functions deploy dv360request --runtime nodejs10 --trigger-http --env-vars-file env.yaml
+```
 
+You may be prompted to login and give SDK necessary permissions - please do this.
+
+Then, you need to choose  "Create a new project"
+
+![Create a new project](docs/gcloud_step3.png)
+
+You will be prompted for project ID, please follow `{agency}-ar-dv360-connector` template, for instance `mybestagency-ar-dv360-connector`.
+
+
+## Step 2 - enable required services
+
+```sh
+gcloud services enable displayvideo.googleapis.com doubleclickbidmanager.googleapis.com  cloudfunctions.googleapis.com cloudbuild.googleapis.com
+```
+
+## Step 3 - link the project to a billing account
+
+Open Google Cloud Console and Navigate to Billing section of newly created project and link with existing billing account. There will be only Cloud Function workload, so we talk about sub-$1 / month.
+
+![Navigate to Billing](docs/gcloud_step4_1.png)
+![Link to Billing account](docs/gcloud_step4.png)
+
+## Step 4 - deploy function
+
+**Make sure you have created configuration file `env.yaml` and copied to the current folder**
+
+**Don't allow anonymous invocation when prompted!**
+
+```sh
+gcloud functions deploy dv360request --runtime nodejs10 --trigger-http --env-vars-file env.yaml
+```
+
+## Step 5 - allow AudienceProject to call the function
+
+```sh
 gcloud functions add-iam-policy-binding dv360request  --member=serviceAccount:invoker@audienceproject-dv360-proxy.iam.gserviceaccount.com --role=roles/cloudfunctions.invoker
 ```
 
-## Testing
+## Step 6 - give project access to DV360 partner/advertiser
+
+In Google Cloud Console you need to navigate to the **Credentials** screen and copy email of created Service Account. Then add this email to DV360 and give **Readonly** permission to required Advertisers.
+
+![Navigate to Credentials](docs/gcloud_step5.png)
+![Copy Service Account email](docs/gcloud_step6.png)
+![Invite Service Account to DV360](docs/gcloud_step7.png)
+
+## Step 7 - test if everything works
 
 There is special operation that can test API connection and Partner/Advertiser configuration - `ping`.
 
-Invoke Lamda function with `events/ping.json` as input, this will verify the connection and result will be written in `out.json` file.
+Just call the function with `{"operation": "ping"}` payload and it will diagnose the setup.
+
+```sh
+gcloud functions call dv360request --data '{"operation": "ping"}'
+```
 
 **Examples**
 
@@ -304,7 +280,7 @@ Access not configured
 
 ## Updates
 
-Just re-deploy
+If you need to update code base or configuration, you just need to re-deploy the function using the same command as in Step 5.
 
 
 
