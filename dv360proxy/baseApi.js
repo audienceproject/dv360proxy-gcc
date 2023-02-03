@@ -2,7 +2,7 @@ const axios = require("axios");
 const rax = require("retry-axios");
 const getDV360AccessToken = require("./getDV360AccessToken");
 
-const baseApi = function () {
+const baseApi = function (requestId) {
     this.configureApiClient = (url, validateStatus) => {
         let apiConfig = {
             baseURL: url
@@ -53,7 +53,7 @@ const baseApi = function () {
         return api;
     };
 
-    this.processRequest = async (requestCall, requestId, name, payload) => { 
+    this.processRequest = async (requestCall, name, payload) => { 
         try {
             return await requestCall();
         } catch (err) {

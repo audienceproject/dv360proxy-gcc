@@ -1,48 +1,49 @@
-const baseApi = require("./baseApi");
+const BaseApi = require("./baseApi");
 
-const doubleClickBidManagerApiV2 = function () {
+const doubleClickBidManagerApiV2 = function (requestId) {
+    const baseApi = new BaseApi(requestId);
     const dbmApi = baseApi.configureApiClient("https://doubleclickbidmanager.googleapis.com/v2");
 
-    this.getQueries = async (requestId, pageToken) => {
+    this.getQueries = async (pageToken) => {
         return await baseApi.processRequest(async () => {
             const queriesResponse = await dbmApi.get("/queries", { params: { pageToken: pageToken } });
             return queriesResponse.data;
-        }, requestId, 'DV360API.getQueries', '');
+        }, 'DV360API.getQueries', '');
     };
 
-    this.getQuery = async (requestId, queryId) => {
+    this.getQuery = async (queryId) => {
         return await baseApi.processRequest(async () => {
             const queriesResponse = await dbmApi.get(`/queries/${queryId}`);
             return queriesResponse.data;
-        }, requestId, 'DV360API.getQuery', queryId);
+        }, 'DV360API.getQuery', queryId);
     };
 
-    this.createQuery = async (requestId, query) => {
+    this.createQuery = async (query) => {
         return await baseApi.processRequest(async () => {
             const queriesResponse = await dbmApi.post("/queries", query);
             return queriesResponse.data;
-        }, requestId, 'DV360API.createQuery', query);
+        }, 'DV360API.createQuery', query);
     };
 
-    this.runQuery = async (requestId, queryId, data) => {
+    this.runQuery = async (queryId, data) => {
         return await baseApi.processRequest(async () => {
             const queriesResponse = await dbmApi.post(`/queries/${queryId}:run`, data);
             return queriesResponse.data;
-        }, requestId, 'DV360API.runQuery', queryId);
+        }, 'DV360API.runQuery', queryId);
     };
 
-    this.deleteQuery = async (requestId, queryId) => {
+    this.deleteQuery = async (queryId) => {
         return await baseApi.processRequest(async () => {
             await dbmApi.delete(`/queries/${queryId}`);
             return true;
-        }, requestId, 'DV360API.deleteQuery', queryId);
+        }, 'DV360API.deleteQuery', queryId);
     };
 
-    this.getQueryReports = async (requestId, queryId, pageToken) => {
+    this.getQueryReports = async (queryId, pageToken) => {
         return await baseApi.processRequest(async () => {
             const queriesResponse = await dbmApi.get(`/queries/${queryId}/reports`, { params: { pageToken: pageToken } });
             return queriesResponse.data;
-        }, requestId, 'DV360API.getQueryReports', queryId);
+        }, 'DV360API.getQueryReports', queryId);
     };
 };
 

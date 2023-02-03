@@ -1,63 +1,67 @@
 const configLoader = require("./config");
-const dvApi = require("./dvApi");
-const dbmApi = require("./dbmApi");
-const dbmApiV2 = require("./dbmApiV2");
+const DvApi = require("./dvApi");
+const DbmApi = require("./dbmApi");
+const DbmApiV2 = require("./dbmApiV2");
 
 const API = function (requestId) {
+    var dvApi = new DvApi(requestId);
+    var dbmApi = new DbmApi(requestId);
+    var dbmApiV2 = new DbmApiV2(requestId);
+
     this.getQueries = async ({pageToken}) => {
-        return await dbmApi.getQueries(requestId, pageToken);
+        return await dbmApi.getQueries(pageToken);
     };
 
     this.getQueries_v2 = async ({pageToken}) => {
-        return await dbmApiV2.getQueries(requestId, pageToken);
+        return await dbmApiV2.getQueries(pageToken);
     };
 
     this.getQuery = async ({queryId}) => {
-        return await dbmApi.getQuery(requestId, queryId);
+        return await dbmApi.getQuery(queryId);
     };
 
     this.getQuery_v2 = async ({queryId}) => {
-        return await dbmApiV2.getQuery(requestId, queryId);
+        return await dbmApiV2.getQuery(queryId);
     };
 
     this.createQuery = async ({query}) => {
-        return await dbmApi.createQuery(requestId, query);
+        return await dbmApi.createQuery(query);
     };
 
     this.createQuery_v2 = async ({query}) => {
-        return await dbmApiV2.createQuery(requestId, query);
+        return await dbmApiV2.createQuery(query);
     };
 
     this.runQuery = async ({queryId, data}) => {
-        return await dbmApi.runQuery(requestId, queryId, data);
+        return await dbmApi.runQuery(queryId, data);
     };
 
     this.runQuery_v2 = async ({queryId, data}) => {
-        return await dbmApiV2.runQuery(requestId, queryId, data);
+        return await dbmApiV2.runQuery(queryId, data);
     };
 
     this.deleteQuery = async ({queryId}) => {
-        return await dbmApi.deleteQuery(requestId, queryId);
+        return await dbmApi.deleteQuery(queryId);
     };
 
     this.deleteQuery_v2 = async ({queryId}) => {
-        return await dbmApiV2.deleteQuery(requestId, queryId);
+        return await dbmApiV2.deleteQuery(queryId);
     };
 
     this.getQueryReports = async ({queryId, pageToken}) => {
-        return await dbmApi.getQueryReports(requestId, queryId, pageToken);
+        return await dbmApi.getQueryReports(queryId, pageToken);
     };
 
     this.getQueryReports_v2 = async ({queryId, pageToken}) => {
-        return await dbmApiV2.getQueryReports(requestId, queryId, pageToken);
+        return await dbmApiV2.getQueryReports(queryId, pageToken);
     };
 
     this.ping = async () => {
-        return await ping(async () => await dbmApi.getQueries(requestId));
+        return await ping(async () => await dbmApi.getQueries());
     }
 
     this.ping_v2 = async () => {
-        return await ping(async () => await dbmApiV2.getQueries(requestId));
+        return await ping(async () => await dbmApiV2.getQueries());
     }
 
     async function ping(dbmCheck) {
@@ -76,7 +80,7 @@ const API = function (requestId) {
             config = await configLoader();
         } catch (err) {
             response.ok = false;
-            response.error.push(err.stack);
+            response.errors.push(err.stack);
             return response;
         }
 
