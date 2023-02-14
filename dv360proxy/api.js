@@ -6,7 +6,7 @@ const DbmApiV2 = require("./dbmApiV2");
 
 const API = function (requestId) {
     var dvApi = new DvApi(requestId);
-    var dbApiV2 = new DvApiV2(requestId);
+    var dvApiV2 = new DvApiV2(requestId);
     var dbmApi = new DbmApi(requestId);
     var dbmApiV2 = new DbmApiV2(requestId);
 
