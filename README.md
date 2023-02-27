@@ -139,7 +139,7 @@ The Function needs to be configured to allow only whitelisted partner and advert
 }
 ```
 
-It can be human-readed as following:
+It can be human-read as following:
 * Advertiser 456 belonging to partner ID 1234 can be queried, except Cost and Fee data
 * Advertiser 789 belonging to partner ID 1234 can be queried without limits
 * Advertiser 987 belonging to partner ID 2345 can be queried, except Cost, Fee and Video metrics (e.g. `METRIC_RICH_MEDIA_VIDEO_COMPLETIONS`)
@@ -167,7 +167,7 @@ You need to create new Google Cloud Application by running
 gcloud init
 ```
 
-You may be prompted to login and give SDK necessary permissions - please do this.
+You may be prompted to log in and give SDK necessary permissions - please do this.
 
 Then, you need to choose  "Create a new project"
 
@@ -225,7 +225,7 @@ gcloud functions call dv360request --data '{"operation": "ping"}'
 
 **Examples**
 
-Valid confuguration:
+Valid configuration:
 ```json
 {
     "ok": true,
@@ -242,7 +242,7 @@ Valid confuguration:
 }
 ```
 
-Unaccessible advertiser configured:
+Inaccessible advertiser configured:
 ```json
 {
     "ok": false,
@@ -288,7 +288,7 @@ If you need to update code base or configuration, you just need to re-deploy the
 
 There is not built-it throttling or rate-limits in the proxy. These limits can be managed in Google Developer Console.
 
-DV360Proxy has embed retry polcieis on retrieable API errors with exponential backoff.
+DV360Proxy has embed retry policies on retryable API errors with exponential backoff.
 
 
 ![Configure quotas](docs/configure_quotas.png)
