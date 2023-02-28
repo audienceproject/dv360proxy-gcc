@@ -196,7 +196,7 @@ Open Google Cloud Console and Navigate to Billing section of newly created proje
 **Don't allow anonymous invocation when prompted!**
 
 ```sh
-gcloud functions deploy dv360request --runtime nodejs10 --trigger-http --env-vars-file env.yaml
+gcloud functions deploy dv360request --runtime nodejs16 --trigger-http --env-vars-file env.yaml
 ```
 
 ## Step 5 - allow AudienceProject to call the function
