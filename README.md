@@ -156,7 +156,7 @@ This configuration needs to be passed to the Function using `DV360_PROXY_CONFIG`
 
 # Deployment
 
-Entire deployment happens from CLI, so you need to make sure [gcloud SDK](https://cloud.google.com/sdk/docs/install) is insatalled.
+Entire deployment happens from CLI, so you need to make sure [gcloud SDK](https://cloud.google.com/sdk/docs/install) is installed.
 
 Then you need to set `dv360proxy` as your working directory and all commands from it.
 
@@ -196,7 +196,7 @@ Open Google Cloud Console and Navigate to Billing section of newly created proje
 **Don't allow anonymous invocation when prompted!**
 
 ```sh
-gcloud functions deploy dv360request --runtime nodejs16 --trigger-http --env-vars-file env.yaml
+gcloud functions deploy dv360request --runtime nodejs18 --trigger-http --env-vars-file env.yaml
 ```
 
 ## Step 5 - allow AudienceProject to call the function
