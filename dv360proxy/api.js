@@ -1,10 +1,10 @@
 const configLoader = require("./config");
-const DvApiV2 = require("./dvApiV2");
+const DvApiV3 = require("./dvApiV3");
 const DbmApi = require("./dbmApi");
 const DbmApiV2 = require("./dbmApiV2");
 
 const API = function (requestId) {
-    var dvApiV2 = new DvApiV2(requestId);
+    var dvApi = new DvApiV3(requestId);
     var dbmApi = new DbmApi(requestId);
     var dbmApiV2 = new DbmApiV2(requestId);
 
@@ -85,7 +85,7 @@ const API = function (requestId) {
         const partners = config.runtimeConfig.partners;
         for (const partner of partners) {
             for (const advertiser of partner.advertisers) {
-                const { data, status } =  await dvApiV2.getAdvertiser(advertiser.id);
+                const { data, status } =  await dvApi.getAdvertiser(advertiser.id);
                 if (status !== 200) {
                     response.ok = false;
                     response.unavailableAdvertisers.push({
